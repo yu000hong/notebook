@@ -269,3 +269,7 @@ asynchronous; sending or receiving a message will not wait unless the channel is
 - Write your own `Sleep` function using `time.After`.
 
 - What is a buffered channel? How would you create one with a capacity of 20?
+
+# 链接
+
+[Concurrency](https://www.golang-book.com/books/intro/10)
