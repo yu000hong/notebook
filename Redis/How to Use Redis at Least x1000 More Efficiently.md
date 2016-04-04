@@ -21,7 +21,7 @@ Assume you want to keep track of how many unique users are using your app throug
 Before HyperLogLog, one simple way that you could do that in Redis was by storing the IDs of your users (e.g. their emails) 
 in an hourly set, so for each request you'd do something like:
 
-> SADD users:<date>:<hour> <email>
+> `SADD users:<date>:<hour> <email>`
 
 This way, the result of [SCARD](http://redis.io/commands/scard) for any such set would be the number of unique 
 users for that hour. The problem with that approach is that it can consume a lot of memory. If your application 
@@ -31,7 +31,7 @@ orders of magnitude more efficient :P
 
 When using HLL we'd count the users with:
 
-> PFADD users:<date>:<hour> <email>
+> `PFADD users:<date>:<hour> <email>`
 
 And use [PFCOUNT](http://redis.io/commands/pfcount) to obtain the hourly count. But what if you wanted 
 (and you usually do) to have aggregates for different time periods, like 3h, 6h, 12h and 24h? With the 
