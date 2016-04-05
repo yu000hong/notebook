@@ -71,7 +71,7 @@ p:= Person {
 We created an instance of a Person type by using a struct literal. When we create instances of struct types using 
 struct literals, we can split the code into multiple lines, but **we need to put an `extra comma` at the end of the last assignment**.
 
-> **`We can create the instances in a shorter way if we clearly know the order of the struct fields.`**
+**`We can create the instances in a shorter way if we clearly know the order of the struct fields.`**
 
 > Code Listing – 4
 
@@ -138,9 +138,9 @@ func (p Person) GetDetails() {
 }
 ```
 
-> **A method in Go is simply a function that is declared with a receiver.** 
+**A method in Go is simply a function that is declared with a receiver.** 
 
-> **If you want to modify the data of a receiver from the method, the receiver must be a pointer as shown below:**
+**If you want to modify the data of a receiver from the method, the receiver must be a pointer as shown below:**
 
 > Code Listing – 8
 
