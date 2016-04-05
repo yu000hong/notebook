@@ -58,7 +58,7 @@ This means your anonymous function can be used anywhere a http.Handler –
 [http://golang.org/pkg/net/http/#Handler](http://golang.org/pkg/net/http/#Handler) – is needed. This is 
 because both the HandlerFunc and Handler define the same methods.
 
-> **You couldn’t directly convert to a http.Handler, since http.Handler is of the type interface - not function.** 
+> **You couldn’t directly convert to a http.Handler, since http.Handler is of the type `interface` - not `function`.** 
 
 More on interfaces later.
 
