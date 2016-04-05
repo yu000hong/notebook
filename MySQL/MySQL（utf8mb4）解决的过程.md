@@ -39,6 +39,10 @@
 - 检查下jdbc连接串的设置：
 jdbc:mysql://localhost:3306/dbname?useUnicode=true&characterEncoding=utf8
 
+### 总结
+
+最重要的是增加**`set names utf8mb4`**这条初始化语句。
+
 # 链接
 
 [MySQL（utf8mb4）解决的过程](https://segmentfault.com/a/1190000004594385)
