@@ -28,3 +28,8 @@ LoadBroadcastManager，ViewPager，PageTabStrip，Loader，FileProvider 等。
 v7 appcompat library 是包含在 v7 Support Libraries里面的一个包，正是此包增加了Action Bar 用户界面的设计模式，并加入了对material design 的支持，是我们使用最多的一个兼容包。
 
 
+[To be continued]
+
+# 链接
+
+[Android关于Theme.AppCompat相关问题的深入分析](http://www.jianshu.com/p/6ad7864e005e)
