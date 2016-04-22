@@ -83,5 +83,125 @@ RecyclerView.ItemAnimator will animate ViewGroup modifications such as add/delet
 DefaultItemAnimator can be used for basic default animations and works quite well. See the 
 [section](https://guides.codepath.com/android/Using-the-RecyclerView#animators) of this guide for more information.
 
+### Using the RecyclerView
 
+Using a RecyclerView has the following key steps:
 
+- Add RecyclerView support library to the gradle build file
+- Define a model class to use as the data source
+- Add a RecyclerView to your activity to display the items
+- Create a custom row layout XML file to visualize the item
+- Create a RecyclerView.Adapter and ViewHolder to render the item
+- Bind the adapter to the data source to populate the RecyclerView
+
+The steps are explained in more detail below.
+
+#### Installation
+
+Make sure the recyclerview support library is listed as a dependency in your `app/build.gradle`:
+
+```
+dependencies {
+    ...
+    compile 'com.android.support:recyclerview-v7:23.2.1'
+}
+```
+
+Click on "Sync Project with Gradle files" to let your IDE download the appropriate resources.
+
+#### Defining a Model
+
+Every RecyclerView is backed by a source for data. In this case, we will define a Contact class which represents the data model being displayed by the RecyclerView:
+
+```java
+public class Contact {
+    private String mName;
+    private boolean mOnline;
+
+    public Contact(String name, boolean online) {
+        mName = name;
+        mOnline = online;
+    }
+
+    public String getName() {
+        return mName;
+    }
+
+    public boolean isOnline() {
+        return mOnline;
+    }
+
+    private static int lastContactId = 0;
+
+    public static ArrayList<Contact> createContactsList(int numContacts) {
+        ArrayList<Contact> contacts = new ArrayList<Contact>();
+
+        for (int i = 1; i <= numContacts; i++) {
+            contacts.add(new Contact("Person " + ++lastContactId, i <= numContacts / 2));
+        }
+
+        return contacts;
+    }
+}
+```
+
+#### Create the RecyclerView within Layout
+
+Inside the desired activity layout XML file in `res/layout/activity_users.xml`, let's add the RecyclerView from the support library:
+
+```xml
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent" >
+    
+    <android.support.v7.widget.RecyclerView
+      android:id="@+id/rvContacts"
+      android:layout_width="match_parent"
+      android:layout_height="match_parent" />
+
+</RelativeLayout>
+```
+
+In the layout, preview we can see the RecyclerView within the activity:
+
+![](https://i.imgur.com/Qf5fQ8X.png)
+
+Now the RecyclerView is embedded within our activity layout file. Next, we can define the layout for each item within our list.
+
+#### Creating the Custom Row Layout
+
+Before we create the adapter, let's define the XML layout file that will be used for each row within the list. This item layout for now should contain a horizontal linear layout with a textview for the name and a button to message the person:
+
+![](https://i.imgur.com/wPRTc76.png) ![](https://i.imgur.com/fu3FzsV.png)
+
+This layout file can be created in `res/layout/item_contact.xml` and will be rendered for each item row. Note that you should be using wrap_content for the layout_height because RecyclerView versions prior to 23.2.1 previously ignored layout parameters. See [this link](http://android-developers.blogspot.com/2016/02/android-support-library-232.html) for more context.
+
+```xml
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        android:orientation="horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingTop="10dp"
+        android:paddingBottom="10dp">
+
+    <TextView
+        android:id="@+id/contact_name"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        />
+
+    <Button
+        android:id="@+id/message_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:paddingLeft="16dp"
+        android:paddingRight="16dp"
+        android:textSize="10sp"
+        />
+</LinearLayout>
+```
+
+With the custom item layout complete, let's create the adapter to populate the data into the recycler view.
