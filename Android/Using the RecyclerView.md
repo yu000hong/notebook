@@ -205,3 +205,227 @@ This layout file can be created in `res/layout/item_contact.xml` and will be ren
 ```
 
 With the custom item layout complete, let's create the adapter to populate the data into the recycler view.
+
+#### Creating the RecyclerView.Adapter
+
+Here we need to create the adapter which will actually populate the data into the RecyclerView. The adapter's role is to **convert an object at a position into a list row item** to be inserted.
+
+However with a RecyclerView the adapter requires the existence of a "ViewHolder" object which describes and provides access to all the views within each item row. We can create the basic empty adapter and holder together in `ContactsAdapter.java` as follows:
+
+```java
+// Create the basic adapter extending from RecyclerView.Adapter
+// Note that we specify the custom ViewHolder which gives us access to our views
+public class ContactsAdapter extends 
+    RecyclerView.Adapter<ContactsAdapter.ViewHolder> {
+
+    // Provide a direct reference to each of the views within a data item
+    // Used to cache the views within the item layout for fast access
+    public static class ViewHolder extends RecyclerView.ViewHolder {
+        // Your holder should contain a member variable
+        // for any view that will be set as you render a row
+        public TextView nameTextView;
+        public Button messageButton;
+
+        // We also create a constructor that accepts the entire item row
+        // and does the view lookups to find each subview
+        public ViewHolder(View itemView) {
+            // Stores the itemView in a public final member variable that can be used
+            // to access the context from any ViewHolder instance.
+            super(itemView);
+
+            nameTextView = (TextView) itemView.findViewById(R.id.contact_name);
+            messageButton = (Button) itemView.findViewById(R.id.message_button);
+        }
+    }
+}
+```
+
+Now that we've defined the basic adapter and `ViewHolder`, we need to begin filling in our adapter. First, let's store a member variable for the list of contacts and pass the list in through our constructor:
+
+```java
+public class ContactsAdapter extends 
+    RecyclerView.Adapter<ContactsAdapter.ViewHolder> {
+
+    // ... view holder defined above...
+
+    // Store a member variable for the contacts
+    private List<Contact> mContacts;
+
+    // Pass in the contact array into the constructor
+    public ContactsAdapter(List<Contact> contacts) {
+        mContacts = contacts;
+    }
+}
+```
+
+Every adapter has three primary methods: 
+
+- `onCreateViewHolder` to inflate the item layout and create the holder, 
+- `onBindViewHolder` to set the view attributes based on the data and 
+- `getItemCount` to determine the number of items. 
+ 
+We need to implement all three to finish the adapter:
+
+```java
+public class ContactsAdapter extends 
+    RecyclerView.Adapter<ContactsAdapter.ViewHolder> {
+
+    // ... constructor and member variables
+
+    // Usually involves inflating a layout from XML and returning the holder
+    @Override
+    public ContactsAdapter.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+        Context context = parent.getContext();
+        LayoutInflater inflater = LayoutInflater.from(context);
+
+        // Inflate the custom layout
+        View contactView = inflater.inflate(R.layout.item_contact, parent, false);
+
+        // Return a new holder instance
+        ViewHolder viewHolder = new ViewHolder(contactView);
+        return viewHolder;
+    }
+    
+    // Involves populating data into the item through holder
+    @Override
+    public void onBindViewHolder(ContactsAdapter.ViewHolder viewHolder, int position) {
+        // Get the data model based on position
+        Contact contact = mContacts.get(position);
+
+        // Set item views based on the data model
+        TextView textView = viewHolder.nameTextView;
+        textView.setText(contact.getName());
+
+        Button button = viewHolder.messageButton;
+
+        if (contact.isOnline()) {
+            button.setText("Message");
+            button.setEnabled(true);
+        }
+        else {
+            button.setText("Offline");
+            button.setEnabled(false);
+        }
+
+    }
+
+    // Return the total count of items
+    @Override
+    public int getItemCount() {
+        return mContacts.size();
+    }
+}
+```
+
+With the adapter completed, all that is remaining is to bind the data from the adapter into the RecyclerView.
+
+#### Binding the Adapter to the RecyclerView
+
+In our activity, we will populate a set of sample users which should be displayed in the RecyclerView.
+
+```java
+public class UserListActivity extends AppCompatActivity {
+
+     ArrayList<Contact> contacts;
+
+     @Override
+     protected void onCreate(Bundle savedInstanceState) {
+         // ...
+         // Lookup the recyclerview in activity layout
+         RecyclerView rvContacts = (RecyclerView) findViewById(R.id.rvContacts);
+
+         // Initialize contacts
+         contacts = Contact.createContactsList(20);
+         // Create adapter passing in the sample user data
+         ContactsAdapter adapter = new ContactsAdapter(contacts);
+         // Attach the adapter to the recyclerview to populate items
+         rvContacts.setAdapter(adapter);
+         // Set layout manager to position the items
+         rvContacts.setLayoutManager(new LinearLayoutManager(this));
+         // That's all!
+     }
+}
+```
+
+Finally, compile and run the app and you should see something like the screenshot below. If you create enough items and scroll through the list, the views will be recycled and far smoother by default than the ListView widget:
+
+![](http://i.imgur.com/vbIL5HA.gif)
+
+#### Notifying the Adapter
+
+Unlike `ListView`, there is no way to add or remove items directly through the RecyclerView adapter. You need to make changes to the data source directly and notify the adapter of any changes. Also, whenever adding or removing elements, always make changes to the existing list. For instance, reinitializing the list of Contacts such as the following will not affect the adapter, since it has a memory reference to the old list:
+
+```java
+// do not reinitialize an existing reference used by an adapter
+contacts = Contact.createContactsList(5);
+```
+
+Instead, you need to act directly on the existing reference:
+
+```java
+// add to the existing list
+contacts.addAll(Contact.createContactsList(5));
+```
+
+There are many method available to use when notifying the adapter of different changes:
+
+| Method | Description |
+| ------ | ----------- |
+| notifyItemChanged(int pos) | Notify that item at position has changed. |
+| notifyItemInserted(int pos) | Notify that item reflected at position has been newly inserted. |
+| notifyItemRemoved(int pos) | Notify that items previously located at position has been removed from the data set. |
+| notifyDataSetChanged() | Notify that the dataset has changed. Use only as last resort. |
+
+We can use these from the activity or fragment:
+
+```java
+// Add a new contact
+contacts.add(0, new Contact("Barney", true));
+// Notify the adapter that an item was inserted at position 0
+adapter.notifyItemInserted(0);
+```
+
+Every time we want to add or remove items from the RecyclerView, we will need to explicitly inform to the adapter of the event. Unlike the ListView adapter, a RecyclerView adapter should not rely on notifyDataSetChanged() since the more granular actions should be used. See the [API documentation](https://developer.android.com/reference/android/support/v7/widget/RecyclerView.Adapter.html) 
+for more details.
+
+Also, if you are intending to update an existing list, make sure to get the current count of items before making any changes. For instance, a getItemCount() on the adapter should be called to record the first index that will be changed.
+
+```java
+// record this value before making any changes to the existing list
+int curSize = adapter.getItemCount();
+
+// replace this line with wherever you get new records
+ArrayList<Contact> newItems = Contact.createContactsList(20); 
+
+// update the existing list
+contacts.addAll(newItems);
+// curSize should represent the first element that got added
+// newItems.size() represents the itemCount
+adapter.notifyItemRangeInserted(curSize, newItems.size());
+```
+
+#### Scrolling to New Items
+
+If we are inserting elements to the front of the list and wish to maintain the position at the top, we can set the scroll position to the 1st element:
+
+```java
+adapter.notifyItemInserted(0);  
+rvContacts.scrollToPosition(0);   // index 0 position
+```
+
+If we are adding items to the end and wish to scroll to the bottom as items are added, we can notify the adapter that an additional element has been added and can call smoothScrollToPosition() on the RecyclerView:
+
+```java
+adapter.notifyItemInserted(contacts.size() - 1);  // contacts.size() - 1 is the last element position
+rvContacts.scrollToPosition(mAdapter.getItemCount() - 1); // update based on adapter 
+```
+
+#### Implementing Endless Scrolling
+
+To implement fetching more data and appending to the end of the list as the user scrolls towards the bottom, use the `addOnScrollListener()` from the RecyclerView and add an onLoadMore method leveraging the `EndlessScrollViewScrollListener` document in the guide.
+
+[To be continued...]
+
+# 链接
+
+[Using the RecyclerView](https://guides.codepath.com/android/using-the-recyclerview)
