@@ -60,8 +60,89 @@ YUM will contain the URL's(Uniform Resource Locators) of different repositories 
 You can in fact update all the installed applications on your system, with the help of a single YUM command(yum 
 will fetch different packages from appropriate different repositories.)
 
+### Let's create a yum repository for better understanding
 
+Let's create a yum repository from the packages that we have in the Red Hat/Centos installation DVD. Creating a YUM repository will help you to understand the concept of a YUM repository closely. You get a large number of packages(development tools & application packages etc), inside the installation disk. However all are not installed, when you install the operating system.
 
+Later on if you need a particular package, its not at all advisable to insert the installation disk once again, and fetch that required .rpm package and install it. Again if you face dependency problems, you need to fetch that dependency package once again(sometimes there are yet another dependency package required for installing your dependency packagecheeky. So it becomes a tedious job).
+
+Let's go through a step by step method of creating a **`local YUM repository`**.
+
+**`Step 1`**: Copy all the .rpm packages from your Installation disk(also all your collected packages) to an isolated folder on your system.
+
+**`Step 2`**: For showing you this example, i will be copying all the .rpm packages inside `/var/yum` folder
+
+```bash
+[root@slashroot2 yum]# pwd
+/var/yum
+[root@slashroot2 yum]# ls
+a2ps-4.13b-57.2.el5.i386.rpm
+acl-2.2.39-3.el5.i386.rpm
+acpid-1.0.4-7.el5.i386.rpm
+adaptx-0.9.13-3jpp.1.i386.rpm
+adaptx-doc-0.9.13-3jpp.1.i386.rpm
+```
+
+If you see the above output(there are around 2000 packages in the installation disk, i have not shown the whole output.), all packages from the installation disk are copied inside /var/yum. As i told before, a repository is nothing but a collection of packages in a directory. YUM was made, so that an operating system can use different repositories at the same time.
+
+It is not at all feasible for an operating system to download the entire repository(because a repository is sometimes very large in the size of Gigabytes. And YUM was designed to fetch and download only those packages that are required to install your required software on demand.) to install the packages required. For example, if i want to install a package called "Perl",  YUM must first have the list of all the package's in a repository(note the fact that it only requires the list, not the package)
+
+YUM will download the total list of packages available in a repository(the list will contain the package names in the repository, package details etc). Not that it will download only the list of packages with details, not the packages. After downloading the list, If yum was able to fetch all the dependencies for your required package(from that repository or other repositories) yum will install it after confirming with you.
+
+Now lets make that file, which will be containing the package names and other repository details. For this, there is another tool called "`Createrepo`" . Let's see what createrepo does.
+
+```bash
+[root@localhost var]# createrepo /var/yum/
+2669/2669 - orca-1.0.0-5.el5.i386.rpm
+Saving Primary metadata
+Saving file lists metadata
+Saving other metadata
+[root@localhost var]#
+```
+
+In the above example, i have ran createrepo command with the directory "/var/yum" as an argument(you need to install "createrepo" package for that command. You will get that in the installation disk, so install it with "`rpm -ivh createrepo-XX-XX-XX.noarch.rpm`").
+
+```bash
+[root@localhost yum]# ll | grep ^d
+drwxr-xr-x 2 root root      4096 Feb 10 16:40 repodata
+[root@localhost yum]#
+```
+
+After running "createrepo" for our repository directory you will have an extra directory along with the packages inside the repository. this directory is named as "`repodata`"
+
+Lets see what's inside that directory.
+
+```bash
+[root@localhost repodata]# pwd
+/var/yum/repodata
+[root@localhost repodata]# ll
+total 13840
+-rw-r--r-- 1 root root  3021610 Feb 10 16:39 filelists.xml.gz
+-rw-r--r-- 1 root root 10148949 Feb 10 16:39 other.xml.gz
+-rw-r--r-- 1 root root   969664 Feb 10 16:39 primary.xml.gz
+-rw-r--r-- 1 root root      951 Feb 10 16:40 repomd.xml
+[root@localhost repodata]#
+```
+
+You can clearly see there are four files inside that directory. Let's understand the contents of each and every file in detail.
+
+### what is filelists.xml.gz in YUM?
+
+Let's see what's inside that compressed file with the help of "zcat". For explanation i have copied one line from the file "filelists.xml.gz".
+
+```bash
+<package pkgid="deee52b24486906ee52576ee471b57061ccd5544" name="php-mbstring" arch="i386"><version epoch="0" ver="5.1.6" rel="32.el5"/><file>/etc/php.d/mbstring.ini</file><file>/usr/lib/php/modules/mbstring.so</file></package>
+```
+
+If you see the above line, the first entry tell's the package ID, which will uniquely identify the package. The second entry "name" of course suggests the name of the package.
+
+### what is primary.xml.gz in YUM?
+
+### What is repomd.xml in yum?
+
+### What is other.xml.gz in yum?
+
+### How to enable the YUM repo, i just created with createrepo for my system?
 
 # 链接
 
