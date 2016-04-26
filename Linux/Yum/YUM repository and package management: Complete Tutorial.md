@@ -131,7 +131,11 @@ You can clearly see there are four files inside that directory. Let's understand
 Let's see what's inside that compressed file with the help of "zcat". For explanation i have copied one line from the file "filelists.xml.gz".
 
 ```xml
-<package pkgid="deee52b24486906ee52576ee471b57061ccd5544" name="php-mbstring" arch="i386"><version epoch="0" ver="5.1.6" rel="32.el5"/><file>/etc/php.d/mbstring.ini</file><file>/usr/lib/php/modules/mbstring.so</file></package>
+<package pkgid="deee52b24486906ee52576ee471b57061ccd5544" name="php-mbstring" arch="i386">
+  <version epoch="0" ver="5.1.6" rel="32.el5"/>
+  <file>/etc/php.d/mbstring.ini</file>
+  <file>/usr/lib/php/modules/mbstring.so</file>
+</package>
 ```
 
 If you see the above line, the first entry tell's the package ID, which will uniquely identify the package. The second entry "name" of course suggests the name of the package.
