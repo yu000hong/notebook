@@ -58,6 +58,22 @@ the output will only contain the information whether the service is enabled or d
 rsync           off
 ```
 
+### Add a Service
+
+To add a service, type the following at a shell prompt as root:
+
+```bash
+chkconfig --add servicename
+```
+
+### Remove a Service
+
+To remove a service, type the following at a shell prompt as root:
+
+```bash
+chkconfig --del servicename
+```
+
 ### Enabling a Service
 
 To enable a service in runlevels 2, 3, 4, and 5, type the following at a shell prompt as root:
