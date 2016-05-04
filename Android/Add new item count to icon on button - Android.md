@@ -18,17 +18,21 @@ Make your badge a TextView, allowing you to set the numeric value to anything yo
 
 ```xml
 <shape xmlns:android="http://schemas.android.com/apk/res/android"
-  android:shape="oval">
-  <solid
-    android:color="#F00" />
-  <stroke
-    android:width="2dip"
-    android:color="#FFF" />
-  <padding
-    android:left="5dip"
-    android:right="5dip"
-    android:top="5dip"
-    android:bottom="5dip" />
+    android:shape="ring"
+    android:useLevel="false"
+    android:thickness="9dp"
+    android:innerRadius="0dp">
+
+    <solid android:color="#F00" />
+    
+    <stroke
+        android:width="1dip"
+        android:color="#FFF" />
+
+    <padding
+        android:top="2dp"
+        android:bottom="2dp"/>
+
 </shape>
 ```
 
