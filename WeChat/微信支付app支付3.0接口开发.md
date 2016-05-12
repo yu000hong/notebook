@@ -6,9 +6,9 @@
 
 整个微信支付，分为三大平台：
 
-- ｀公众平台｀(就是公众账号那个)
-- ｀开发平台｀(主要针对app这块)
-- ｀商户平台｀(所有微信支付的结算,最终在这里)。
+- `公众平台`(就是公众账号那个)
+- `开发平台`(主要针对app这块)
+- `商户平台`(所有微信支付的结算,最终在这里)。
 
 三个平台的账号都不同，而且必须不同，不然不让你注册。其中，需要用户注册的是公众平台和开放平台，当你审核通过以后，
 就会给你分配一个对应的商户号。也就是说，你一个公司，申请一个公众号和一个开放平台账号，分别给你一个商户号，你就一共有两个商户号。
@@ -50,6 +50,61 @@
 首先，我们需要看一下[统一下单接口](https://pay.weixin.qq.com/wiki/doc/api/app.php?chapter=9_1)文档，里面包含了请求的地址和
 要传的参数，顾名思义，那些必填字段是必须要填写的，这是我的请求参数列表`out_trade_no`,`body`,`total_fee`,`time_start`,
 `time_expire`,`spbill_create_ip`,`notify_url`,`trade_type`还有一个签名`sign`，这就是所有的请求字段。
+
+### 签名
+
+签名的思路是，把所有的除`sign`字段以外的字段，按照参数名ASCII码从小到大排序，使用URL键值对的格式（即key1=value1&key2=value2…）拼接成字符串stringA。在stringA最后拼接上key得到stringSignTemp字符串，并对stringSignTemp进行MD5运算，再将得到的字符串所有字符转换为大写，得到sign值signValue。[官方文档](https://pay.weixin.qq.com/wiki/doc/api/app.php?chapter=4_3)
+
+签名可能有点蛋疼，你可以看[这个文档](https://pay.weixin.qq.com/wiki/doc/api/app.php?chapter=4_3)。微信也提供了签名的
+[在线调试工具](https://pay.weixin.qq.com/wiki/tools/signverify/)，你把参数填进去，看看签名拿到的值是否和你签名的结果一样。
+
+### 调用unifiedOrder
+
+由于统一下单接口，所有的支付方式都会调用，包括公众账号的几种支付方式，而且官方没有app支付的sdk代码，所以我们直接用公众号支付的js sdk代码。sdk里面已经封装好了对统一下单接口的调用，包括签名，所以我们只需要调用这个就好了。
+
+### 整理参数
+
+调用统一下单接口后，会返回很多数据，我们还是调用js sdk里面的处理函数，因为返回的是xml的内容，有些数据我们不要(下面的结果是js api的，结果跟app除了trade_type不同，其他都是一样的)
+
+```xml
+<xml>
+   <return_code><![CDATA[SUCCESS]]></return_code>
+   <return_msg><![CDATA[OK]]></return_msg>
+   <appid><![CDATA[wx2421b1c4370ec43b]]></appid>
+   <mch_id><![CDATA[10000100]]></mch_id>
+   <nonce_str><![CDATA[IITRi8Iabbblz1Jc]]></nonce_str>
+   <sign><![CDATA[7921E432F65EB8ED0CE9755F0E86D72F]]></sign>
+   <result_code><![CDATA[SUCCESS]]></result_code>
+   <prepay_id><![CDATA[wx201411101639507cbf6ffd8b0779950874]]></prepay_id>
+   <trade_type><![CDATA[JSAPI]]></trade_type>
+</xml>
+```
+
+上面的参数中，我们需要appid(就是你配置中的那个appid)，prepay_id(预支付id,之前都是为了它)，partnerid(就是你配置的商户号mch_id)，其他的就没啥用了，我们接下来要给客户端返回一个数据包，全部的数据如下：
+
+```json
+{"appid":"wx8c965dd8b4794241","noncestr":"oxh4g98rfgbmugwbmxfg72ay6qpvieos","package":"Sign=WXpay","partnerid":"1277670101","prepayid":"wx2015102014523449175fc2fd0939076028","timestamp":"1445323951","sign":"7F84997FDW40F6F15DD1C28A9E313122"}
+```
+
+`noncestr`是重新生成的，`package`是固定写法，里面的内容必须写"Sign=WXpay"，`timestamp`也是重新生成的，`sign`是重新签名后的结果。
+
+### 支付回调
+
+和支付宝原理一样，不过微信返回的数据不是标准的post，所以你没法通过`$_POST['out_trade_no']`这样来获取数据。所以，我的做法还是调用js sdk里面的回调方法，把那个回调类继承了一下，我们只需要重写NotifyProcess函数就行了，在这里面加入自己的逻辑，比如判断订单是否存在，订单是否已经处理过之类的。
+
+至此，大流程已经走通了。
+
+### 优化
+
+在调试过程中，我发现同一个订单号不能重复的去获取预支付的prepay_id，所以，我们在整理参数那一步后，需要将返回参数存到数据库，下次申请支付的时候，先去数据库查一下，有的话，就不用给微信服务器请求了。然后把数据返回给客户端就行了，客户端调起支付。
+
+### 参考文献
+
+[微信官方sdk下载](https://pay.weixin.qq.com/wiki/doc/api/app.php?chapter=11_1)
+
+# 链接
+
+[微信支付app支付3.0接口开发](http://bblove.me/2015/10/25/weixin-app-pay-v3-0/)
 
 
 
