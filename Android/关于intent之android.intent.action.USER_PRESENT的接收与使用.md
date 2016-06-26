@@ -6,7 +6,7 @@
 
 后来就找各种能静态注册AndroidManifest.xml同时能反映用户解锁行为的广播，于是找到`android.intent.action.USER_PRESENT`。
 每个用户隔一段时间重新开始使用手机时，首先按电源键点亮屏幕，紧接着解锁。`android.intent.action.USER_PRESENT`就是解锁时发出的intent。
-于是，监听android.intent.action.USER_PRESENT就能识别用户进入home界面，进而启动想启动的相关服务，包括弹出对话框welcome用户、后台启动程序升级服务等等。
+于是，监听`android.intent.action.USER_PRESENT`就能识别用户进入home界面，进而启动想启动的相关服务，包括弹出对话框welcome用户、后台启动程序升级服务等等。
 
 AndroidManifest.xml文件中注册代码：
 ```xml
