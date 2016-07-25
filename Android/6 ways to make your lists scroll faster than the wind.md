@@ -96,3 +96,92 @@ GC occurs frequently when you're creating lots of objects and then destroying th
 
 ### 3. If you're loading images while scrolling, get rid of them
 
+When a user fires a fling MotionEvent , application is downloading images, it needs to stop, concentrate of scrolling, and then get back to downloading images again as soon as motion stops. The effects of doing this is almost magical.
+
+Also, Google gave out code to show how it's done. You can find it here - [https://code.google.com/p/iosched/](https://code.google.com/p/iosched/) (I would really love it if google could post stuff on github and not Google Code)
+
+For those of you who hate opening links and downloading codes, here's a quick snippet of how do you add a scroll listener to stop and start the queue.
+
+```java
+listView.setOnScrollListener(new OnScrollListener() {
+    @Override
+    public void onScrollStateChanged(AbsListView listView, int scrollState) {
+        // Pause disk cache access to ensure smoother scrolling
+        if (scrollState == AbsListView.OnScrollListener.SCROLL_STATE_FLING) {
+            imageLoader.stopProcessingQueue();
+        } else {
+            imageLoader.startProcessingQueue();
+        }
+    }
+
+    @Override
+    public void onScroll(AbsListView view, int firstVisibleItem, int visibleItemCount, int totalItemCount) {
+            // TODO Auto-generated method stub
+    }
+});
+```
+
+### 4. Set scrollingCache and animateCache to false
+
+For the uninitiated, these are properies of the list view. Here are some more details from Numan Salati on StackOverflow (http://stackoverflow.com/questions/15570041/scrollingcache)
+
+> Scrolling cache is basically a drawing cache.
+
+> In android, you can ask a View to store its drawing in a cache called drawing cache (basically a bitmap). By default, a drawing cache is disabled because it takes up memory but you can ask the View to explicitly to create one either via setDrawingCacheEnabled or through hardware layers (setLayerType).
+
+> So why is it useful? Because using a drawing cache make your animation smooth compared to redrawing the view at every frame.
+
+> This type of animation can also be hardware accelerated because the rendering system can take this bitmap and upload it to the GPU as a texture (if using hardware layers) and do fast matrix manipulations on it (like change alpha, translate, rotation). Compare that to doing animation were you are redrawing (onDraw gets called) on every frame.
+
+> In the case of a listview, when you scroll by flinging, you are in essence animating the views of your list (either moving them up or down). The listview uses the drawing cache of its visible children (and some potentially visible children near the edges) to animate them very quickly.
+
+> Is there a disadvantage to using drawing cache? Yes it consumes memory which is why by default it is turned off for in a View. In the case of ListView, the cache automatically created for you as soon as you touch the ListView and move a little (to differentiate a tap from scroll). In other words, as soon as ListView thinks you are about to scroll/fling it will create a scroll cache for you to animate the scroll/fling motion.
+
+Similary, AnimationCache can be evil sometimes (by evil I mean it increases the frequency of GC)
+
+> Defines whether layout animations should create a drawing cache for their children. Enabling the animation cache consumes more memory and requires a longer initialization but provides better performance. The animation cache is enabled by default.
+
+[more details](http://developer.android.com/reference/android/view/ViewGroup.html#attr_android:animationCache)
+
+Here's what we did to our list view. First, here's the original list view.
+
+```xml
+<ListView
+    android:id="@android:id/list"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:divider="@color/list_background_color"
+    android:dividerHeight="0dp"
+    android:listSelector="#00000000"
+    android:smoothScrollbar="true" /> 
+```
+
+And here's the one after the change
+
+```xml
+<ListView
+    android:id="@android:id/list"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:divider="@color/list_background_color"
+    android:dividerHeight="0dp"
+    android:listSelector="#00000000"
+    android:smoothScrollbar="true"
+    android:scrollingCache="false"
+    android:animationCache="false" />
+```
+
+### 5. Simplify the hierarchy of the list view row layout
+
+You NEED to keep the hierarchy of the list view row layout as small as possible. The hierarchy or the depth is directly related to the Measuring and Drawing time of the layout (which you can find in the Hierarchy Viewer tool). We'll probably cover tricks to do these in a later post.
+
+### 6. Use the view holder pattern
+
+This is definitely a beginner's mistake. The first time you do this right, your app will automatically end up in FastScroll Land. The reason this happens is because by doing this when the list scrolls, the layout is inflated only the first time. You can find more about this [here](http://www.vogella.com/tutorials/AndroidListView/article.html#adapterperformance_hoder) and [here](http://www.javacodegeeks.com/2013/09/android-viewholder-pattern-example.html)
+
+Are there any other tricks that I have missed out?
+
+# LINK
+
+[6 ways to make your lists scroll faster than the wind](https://leftshift.io/6-ways-to-make-your-lists-scroll-faster-than-the-wind)
+
